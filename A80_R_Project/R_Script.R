@@ -1,23 +1,15 @@
 # Load Dataset
 df <- read.csv("TestingDetails.csv")
-
 # 1) Load tidyverse
-
 library(tidyverse)
-
-
 # 2) Read the CSV (mark common NA strings as missing)
-
 df <- readr::read_csv(
   "TestingDetails.csv",
   na = c("N/A", "NA", "", " "),
   show_col_types = FALSE
 )
-
 # 3) Set DV column name (short reference)
-
 dv <- "Confirmatory and Presumptive Lab Percent Positive (Daily)"
-
 # 4) Basic cleaning & preparation (tidyverse)
 #    - Parse Date
 #    - Drop rows with missing Date
@@ -75,34 +67,28 @@ p_box <- ggplot(df_dep, aes(x = Year, y = Percent, fill = Year)) +
 # 7) Show and save the boxplot
 
 print(p_box)
-
-# ============================================
+ggsave("boxplot_by_year_tidyverse.png", p_box, width = 9, height = 5.5, dpi = 200)
 # 1) Load tidyverse
-# ============================================
 library(tidyverse)
 
-# ============================================
 # 2) Read the CSV (mark common NA strings as missing)
 #    - Same import as your preferred approach
-# ============================================
 df <- readr::read_csv(
   "TestingDetails.csv",
   na = c("N/A", "NA", "", " "),
   show_col_types = FALSE
 )
 
-# ============================================
 # 3) Set DV column name (short reference)
-# ============================================
+
 dv <- "Confirmatory and Presumptive Lab Percent Positive (Daily)"
 
-# ============================================
 # 4) Basic cleaning & preparation
 #    - Parse Date
 #    - Drop rows with missing Date
 #    - Derive Year from Date
 #    - Coerce DV to numeric (non-numeric -> NA)
-# ============================================
+
 df <- df %>%
   mutate(
     Date = as.Date(Date, format = "%m/%d/%Y")
@@ -114,27 +100,19 @@ df <- df %>%
     `Confirmatory and Presumptive Lab Percent Positive (Daily)` =
       suppressWarnings(as.numeric(`Confirmatory and Presumptive Lab Percent Positive (Daily)`))
   )
-
-# ============================================
 # 5) Build DV-only frame (2020–2022)
 #    - Percent = DV * 100
 #    - Remove missing DV values
-# ============================================
 dv_df <- df %>%
   filter(Year %in% c(2020, 2021, 2022)) %>%
   transmute(Percent = .data[[dv]] * 100) %>%
   filter(!is.na(Percent))
-
-# ============================================
 # 6) Compute mean & sd of DV (Percent) for normal overlay
-# ============================================
 dv_stats <- dv_df %>%
   summarise(m = mean(Percent), sd = sd(Percent))
 
-# ============================================
 # 7) HISTOGRAM with normal curve overlay (density scale)
 #    - y = ..density.. so the normal curve aligns naturally
-# ============================================
 p_hist <- ggplot(dv_df, aes(x = Percent)) +
   geom_histogram(aes(y = ..density..),
                  bins = 30, fill = "skyblue", color = "white") +  # <-- skyblue bars
@@ -152,8 +130,6 @@ p_hist <- ggplot(dv_df, aes(x = Percent)) +
     panel.grid.minor = element_blank()
   )
 
-# ============================================
 # 8) Show and save the histogram
-# ============================================
 print(p_hist)
 ggsave("histogram_dv_with_normal_tidyverse.png", p_hist, width = 9, height = 5.5, dpi = 200)
